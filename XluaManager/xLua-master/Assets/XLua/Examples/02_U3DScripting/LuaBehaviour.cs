@@ -63,7 +63,9 @@ namespace XLuaTest
             if (luaAwake != null)
             {
                 luaAwake();
+               
             }
+            
         }
 
         // Use this for initialization
@@ -72,6 +74,7 @@ namespace XLuaTest
             if (luaStart != null)
             {
                 luaStart();
+            
             }
         }
 

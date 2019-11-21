@@ -1,0 +1,23 @@
+﻿_UNITY=CS.UnityEngine
+local speed=30
+function awake()
+print("我是awake")
+end
+
+function start()
+print("Hello World")
+self:LuaCallBake('Bug异常退出')
+end
+
+function update()
+local r=_UNITY.Vector3.up * _UNITY.Time.deltaTime*speed;
+cube.transform:Rotate(r)
+local s=_UNITY.Vector3(_UNITY.Mathf.Sin(_UNITY.Time.time)/2+1,_UNITY.Mathf.Sin(_UNITY.Time.time)/2+1,_UNITY.Mathf.Sin(_UNITY.Time.time)/2+1)
+cube.transform.localScale=s
+print("Update持续更新")
+end
+
+function ondestroy()
+print("物体被删除了")
+end
+

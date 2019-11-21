@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using XLua;
-
+using UnityEngine.UI;
 [System.Serializable]
 public class InitGameobj
 {
@@ -23,6 +23,8 @@ public class TestXLua : MonoBehaviour
 
     [Header("Lua的文本文件")]
     public TextAsset _luaText;
+    [Header("文本的刷新")]
+    public Text _text;
 
     [Header("Lua的虚拟机")]
     internal static LuaEnv _luaEnv = new LuaEnv();
@@ -38,7 +40,7 @@ public class TestXLua : MonoBehaviour
     #endregion
     //Lua的回调集合
     private LuaTable _luaActionList;
-
+    
 
     private void Awake()
     {
@@ -54,7 +56,7 @@ public class TestXLua : MonoBehaviour
         _newLuaTable.Dispose();
         //lua的表里添加指定的调用方
         _luaActionList.Set("self", this);
-        //给这个表里添加数据元素
+        //给这个表里添加数据元素key代表的是
         foreach (var item in _initGameobj)
         {
             _luaActionList.Set(item._name, item._obj);
@@ -62,10 +64,15 @@ public class TestXLua : MonoBehaviour
         //执行Lua语句
         _luaEnv.DoString(_luaText.text, "LuaTextError", _luaActionList);
 
+        Action luaAwake = _luaActionList.Get<Action>("awake");
         _luaActionList.Get("start", out _luaStart);
         _luaActionList.Get("update", out _luaUpdate);
         _luaActionList.Get("ondestroy", out _luaOnDestroy);
-        
+
+        if (luaAwake != null)
+        {
+            luaAwake();
+        }
     }
     // Start is called before the first frame update
     void Start()
@@ -79,6 +86,12 @@ public class TestXLua : MonoBehaviour
             _luaStart();
         }
     }
+   [LuaCallCSharp]
+    public void LuaCallBake(object info)
+    {
+        _text.text = info.ToString();
+        print("lua调用C#的回掉函数");
+    }
 
     // Update is called once per frame
     void Update()
@@ -89,7 +102,22 @@ public class TestXLua : MonoBehaviour
         }
         if (Time.time - TestXLua._lastGCTime > GCInterval)
         {
-
+            //清楚Lua未手动释放的lua对象，
+            _luaEnv.Tick();
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (_luaOnDestroy != null)
+        {
+            _luaOnDestroy();
+        }
+        //对象被删除了，需要释放资源
+        _luaActionList.Dispose();
+        _luaStart = null;
+        _luaUpdate = null;
+        _luaOnDestroy = null;
+        _initGameobj = null;
     }
 }
